@@ -144,7 +144,7 @@ public class MIPSSimulator {
         int funct = instruction & 0x3F;             // bits 5-0
 
         String mnemonic = functMap.get(funct);
-        return String.format("%s {opcode: %02X, rs: %02X, rt: %02X, rd: %02X, shmt: %02X, funct: %02X}",
+        return String.format("%s {opcode: %02x, rs: %02x, rt: %02x, rd: %02x, shmt: %02x, funct: %02x}",
                 mnemonic, opcode, rs, rt, rd, shamt, funct);
     }
 
@@ -162,7 +162,7 @@ public class MIPSSimulator {
         int immediate = instruction & 0xFFFF;       // bits 15-0
 
         String mnemonic = opcodeMap.get(opcode);
-        return String.format("%s {opcode: %02X, rs(base): %02X, rt: %02X, immediate(offset): %04X}",
+        return String.format("%s {opcode: %02x, rs(base): %02x, rt: %02x, immediate(offset): %04x}",
                 mnemonic, opcode, rs, rt, immediate);
     }
 
@@ -178,7 +178,7 @@ public class MIPSSimulator {
         int address = instruction & 0x3FFFFFF;      // bits 25-0
 
         String mnemonic = opcodeMap.get(opcode);
-        return String.format("%s {opcode: %02X, index: %07X}", mnemonic, opcode, address);
+        return String.format("%s {opcode: %02x, index: %07x}", mnemonic, opcode, address);
     }
 
 
@@ -192,6 +192,6 @@ public class MIPSSimulator {
         int opcode = (instruction >> 26) & 0x3F;    // bits 31-6
         int funct = instruction & 0x3F;             // bits 5-0
 
-        return String.format("syscall {opcode: %02X, code: 000000, funct: %02X}", opcode, funct);
+        return String.format("syscall {opcode: %02x, code: 000000, funct: %02x}", opcode, funct);
     }
 }
