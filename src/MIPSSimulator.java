@@ -12,6 +12,7 @@
  * Coding assignment 2 for UWM COMPSCI 458.
  **********************************************************************/
 
+import java.io.IOException;
 import java.util.*;
 
 public class MIPSSimulator {
@@ -44,32 +45,25 @@ public class MIPSSimulator {
 
 
     public static void main(String[] args) {
-        // Invalid usage check
-        if (args.length != 1) {
-            System.out.println("Usage: java MIPSSimulator <hexcode>");
-            System.exit(1);
+        if (args.length != 2) {
+            System.out.println("Usage: java MIPSSimulator <text file> <data file>");
+            return;
         }
 
-        String hexInput = args[0];
+        String textFile = args[0];
+        String dataFile = args[1];
 
-        int value = 0;
-        
+        MIPSState state = new MIPSState();
+
         try {
-            value = Integer.parseUnsignedInt(hexInput, 16);
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid hexadecimal input: " + hexInput);
+            MemoryLoader.loadText(state, textFile);
+            MemoryLoader.loadData(state, dataFile);
+
+            System.out.println("Memory loaded successfully!");
+            // loop here (fetch-decode-execute)
+        } catch (IOException e) {
+            System.err.println("Error loading files: " + e.getMessage());
         }
-
-        String decodedInstruction = "";
-
-        if (value != 0) {
-            decodedInstruction = decodeInstruction(value);
-        } else {
-            System.out.println("Something went wrong, value is still zero");
-            System.exit(1);
-        }
-
-        System.out.println(decodedInstruction.toLowerCase());
     }
 
 
