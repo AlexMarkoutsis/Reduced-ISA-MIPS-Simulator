@@ -5,6 +5,9 @@ import java.io.IOException;
 public class MemoryLoader {
 
     public static void loadText(MIPSState state, String textFile) throws IOException {
+
+        int address = state.pcAddress;
+
         try (BufferedReader br = new BufferedReader(new FileReader(textFile))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -17,15 +20,18 @@ public class MemoryLoader {
                 int instruction = Integer.parseInt(line.replaceFirst("0x", ""), 16);
 
                 // Store into text memory
-                state.textMemory.put(state.pcAddress, instruction);
+                state.textMemory.put(address, instruction);
 
-                state.pcAddress += 4;
+                address += 4;
             }
         }
     }
 
 
     public static void loadData(MIPSState state, String dataFile) throws IOException {
+
+        int address = state.dataAddress;
+
         try (BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -38,9 +44,9 @@ public class MemoryLoader {
                 int dataValue = Integer.parseInt(line.replaceFirst("0x", ""), 16);
 
                 // Store into data memory
-                state.dataMemory.put(state.dataAddress, dataValue);
+                state.dataMemory.put(address, dataValue);
 
-                state.dataAddress += 4;
+                address += 4;
             }
         }
     }
