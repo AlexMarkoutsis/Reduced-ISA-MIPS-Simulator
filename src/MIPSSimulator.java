@@ -59,8 +59,6 @@ public class MIPSSimulator {
             MemoryLoader.loadText(state, textFile);
             MemoryLoader.loadData(state, dataFile);
 
-            System.out.println("Memory loaded successfully!");
-
             runProgram(state);
 
         } catch (IOException e) {
@@ -74,16 +72,16 @@ public class MIPSSimulator {
         // ** FETCH **
             Integer instruction = state.textMemory.get(state.pcAddress);
             if (instruction == null || instruction == 0x00000000) {
-                System.out.println("Program ended (fell off)");
+                System.out.println("-- program is finished running (dropped off bottom) --");
                 break;
             }
 
         // ** DECODE **
             String decoded = decodeInstruction(instruction);
-            System.out.println(decoded);
+            // System.out.println(decoded);
 
         // ** EXECUTE **
-            // (Here you will switch based on opcode and funct and call specific methods)
+            InstructionExecutor.execute(state, instruction);
 
             // Advance PC
             state.pcAddress += 4;

@@ -17,7 +17,7 @@ public class MemoryLoader {
                 }
 
                 // Parse the instruction
-                int instruction = Integer.parseInt(line.replaceFirst("0x", ""), 16);
+                int instruction = (int) Long.parseLong(line.replaceFirst("0x", ""), 16);
 
                 // Store into text memory
                 state.textMemory.put(address, instruction);
