@@ -12,8 +12,10 @@
  * Coding assignment 2 for UWM COMPSCI 458.
  **********************************************************************/
 
+
 import java.io.IOException;
 import java.util.*;
+
 
 public class MIPSSimulator {
 
@@ -43,7 +45,6 @@ public class MIPSSimulator {
         functMap.set(42, "slt");
     }
 
-
     public static void main(String[] args) {
         if (args.length != 2) {
             System.out.println("Usage: java MIPSSimulator <text file> <data file>");
@@ -53,6 +54,7 @@ public class MIPSSimulator {
         String textFile = args[0];
         String dataFile = args[1];
 
+        // Initialize memory, registers, and PC
         MIPSState state = new MIPSState();
 
         try {
@@ -69,145 +71,24 @@ public class MIPSSimulator {
 
     private static void runProgram(MIPSState state) {
         while (true) {
-        // ** FETCH **
+            // Used for beq/bne
+            int oldPC = state.pcAddress;
+
+            // ** FETCH INSTRUCTION **
             Integer instruction = state.textMemory.get(state.pcAddress);
+
+            // Exit with error
             if (instruction == null || instruction == 0x00000000) {
-                System.out.println("-- program is finished running (dropped off bottom) --");
+                System.out.println("\n-- program is finished running (dropped off bottom) --");
                 break;
             }
 
-        // ** DECODE **
-            String decoded = decodeInstruction(instruction);
-            // System.out.println(decoded);
-
-        // ** EXECUTE **
+            // ** EXECUTE INSTRUCTION **
             InstructionExecutor.execute(state, instruction);
 
-            // Advance PC
-            state.pcAddress += 4;
+            // Only auto-increment if branch not taken
+            if (state.pcAddress == oldPC)
+                state.pcAddress += 4;
         }
-    }
-
-
-    /**
-     * Main decoding method
-     * Delegates work to specific helper methods
-     * @param instruction 32-bit machine code instruction
-     * @return Formatted assembly instruction with components
-     */
-    public static String decodeInstruction(int instruction) {
-
-        int opcode = (instruction >> 26) & 0x3F;  // Mask 6 bits -> 0b111111
-
-        String type = determineInstructionType(instruction, opcode);
-
-        return switch (type) {
-            case "rType" ->     decodeRType(instruction);
-            case "iType" ->     decodeIType(instruction);
-            case "syscall" ->   decodeSyscall(instruction);
-            case "j" ->         decodeJType(instruction);
-            default ->          throw new IllegalArgumentException("Unsupported instruction: " + opcode);
-        };
-    }
-
-
-    /**
-     * Determines instruction type from opcode and
-     * funct code, if the instruction is an r-type
-     * @param instruction Full 32-bit instruction
-     * @param opcode 6-bit opcode field
-     * @return Instruction type classification
-     */
-    private static String determineInstructionType(int instruction, int opcode) {
-
-        // r-type or syscall
-        if (opcode == 0) {
-            int funct = instruction & 0x3F;  // Mask 6 bits -> 0b111111
-            String functName = functMap.get(funct);
-
-            if (functName == null) {
-                throw new IllegalArgumentException("Unknown function: " + funct);
-            }
-            return functName.equals ("syscall") ? "syscall" : "rType";
-
-        // j-type
-        } else if (opcode == 2) {
-            return "j";
-
-        // i-type
-        } else if (opcodeMap.get(opcode) != null) {
-            return "iType";
-
-        // unsupported instruction
-        } else {
-            throw new IllegalArgumentException("opcode not found: " + opcode);
-        }
-    }
-
-
-    /**
-     * Decodes R-Type instructions (opcode 0)
-     * Format: mnemonic {opcode: XX, rs: XX, rt: XX, rd: XX, shmt: XX, funct: XX}
-     * @param instruction Full 32-bit instruction
-     * @return Formatted instruction string
-     */
-    private static String decodeRType(int instruction) {
-        int opcode = (instruction >> 26) & 0x3F;    // bits 31-26
-        int rs = (instruction >> 21) & 0x1F;        // bits 25-21
-        int rt = (instruction >> 16) & 0x1F;        // bits 20-16
-        int rd = (instruction >> 11) & 0x1F;        // bits 15-11
-        int shamt = (instruction >> 6) & 0x1F;      // bits 10-6
-        int funct = instruction & 0x3F;             // bits 5-0
-
-        String mnemonic = functMap.get(funct);
-        return String.format("%s {opcode: %02x, rs: %02x, rt: %02x, rd: %02x, shmt: %02x, funct: %02x}",
-                mnemonic, opcode, rs, rt, rd, shamt, funct);
-    }
-
-
-    /**
-     * Decodes I-Type instructions
-     * Format: mnemonic {opcode: XX, rs(base): XX, rt: XX, immediate(offset): XXXX}
-     * @param instruction Full 32-bit instruction
-     * @return Formatted instruction string
-     */
-    private static String decodeIType(int instruction) {
-        int opcode = (instruction >> 26) & 0x3F;    // bits 31-26
-        int rs = (instruction >> 21) & 0x1F;        // bits 25-21
-        int rt = (instruction >> 16) & 0x1F;        // bits 20-16
-        int immediate = instruction & 0xFFFF;       // bits 15-0
-
-        String mnemonic = opcodeMap.get(opcode);
-        return String.format("%s {opcode: %02x, rs(base): %02x, rt: %02x, immediate(offset): %04x}",
-                mnemonic, opcode, rs, rt, immediate);
-    }
-
-
-    /**
-     * Decodes J-Type instructions (opcode 2)
-     * Format: mnemonic {opcode: XX, index: XXXXXXX}
-     * @param instruction Full 32-bit instruction
-     * @return Formatted instruction string
-     */
-    private static String decodeJType(int instruction) {
-        int opcode = (instruction >> 26) & 0x3F;    // bits 31-26
-        int address = instruction & 0x3FFFFFF;      // bits 25-0
-
-        String mnemonic = opcodeMap.get(opcode);
-        return String.format("%s {opcode: %02x, index: %07x}", mnemonic, opcode, address);
-    }
-
-
-    /**
-     * Handles special syscall instruction
-     * Format: mnemonic {opcode: XX, code: 000000, funct: XX}
-     * @param instruction Full 32-bit instruction
-     * @return Formatted syscall string
-     */
-    private static String decodeSyscall(int instruction) {
-        int opcode = (instruction >> 26) & 0x3F;    // bits 31-6
-        int funct = instruction & 0x3F;             // bits 5-0
-
-        return String.format("syscall {opcode: %02x, code: 000000, funct: %02x}", opcode, funct);
     }
 }

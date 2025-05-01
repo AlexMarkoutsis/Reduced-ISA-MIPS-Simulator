@@ -9,12 +9,13 @@ public class MemoryLoader {
         int address = state.pcAddress;
 
         try (BufferedReader br = new BufferedReader(new FileReader(textFile))) {
+
             String line;
+
             while ((line = br.readLine()) != null) {
+
                 line = line.trim();
-                if (line.isEmpty() || line.startsWith("#")) {
-                    continue;
-                }
+                if (line.isEmpty() || line.startsWith("#")) continue;
 
                 // Parse the instruction
                 int instruction = (int) Long.parseLong(line.replaceFirst("0x", ""), 16);
@@ -33,18 +34,22 @@ public class MemoryLoader {
         int address = state.dataAddress;
 
         try (BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
+
             String line;
+
             while ((line = br.readLine()) != null) {
+
                 line = line.trim();
-                if (line.isEmpty() || line.startsWith("#")) {
-                    continue;
-                }
+                if (line.isEmpty() || line.startsWith("#")) continue;
 
                 // Parse the data value
                 int dataValue = Integer.parseInt(line.replaceFirst("0x", ""), 16);
 
                 // Store into data memory
-                state.dataMemory.put(address, dataValue);
+                for (int i = 3; i >= 0; i--) {
+                    byte b = (byte) ((dataValue >> (i * 8)) & 0xFF);
+                    state.dataMemory.put(address + (3 - i), b);
+                }
 
                 address += 4;
             }
